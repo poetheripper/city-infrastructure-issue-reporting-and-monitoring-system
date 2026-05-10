@@ -3,6 +3,7 @@
 #include <time.h>
 #include <string.h>
 #include <sys/stat.h>
+#include <sys/wait.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <unistd.h>
@@ -553,6 +554,51 @@ void verify_symlinks_integrity(){
     closedir(directory);
 }
 
+// rm -rf <district_directory>
+// de facut si o functie auxiliara care updateaza fiecare actiunea realizata de vreun manager pentru simplitate=-
+void remove_district_function(char *district_id, char *user_name, char *user_role){
+
+    if(strcmp("manager", user_role)){
+        printf("Permission denied! Only the manager cand perform this action.");
+        return;
+    }
+
+    char symlink_path[100];
+    snprintf(symlink_path, sizeof(symlink_path), "active_reports-%s", district_id);
+
+    if(unlink(symlink_path) == -1 && errno == ENOENT){
+        perror("Error while unlink()\n");
+        return;
+    }
+
+    pid_t pid = fork();
+
+    if(pid < 0){
+        perror("Error while fork()\n");
+        return;
+    }else if(pid == 0){
+
+        // the child process
+        // use the execlp() function to remove the folder
+        execlp("rm", "rm", "-rf", district_id, NULL);
+
+        perror("Error while execlp()!\n");
+        exit(1);
+    }else{
+
+        // the parent process
+        int status;
+        waitpid(pid, &status, 0);
+
+        if(WIFEXITED(status) && WEXITSTATUS(status) == 0){
+            printf("The district was successfully removed!\n");
+        }else{
+            printf("Error while rm -rf command...\n");
+        }
+    }
+}
+
+
 // usage example
 // ./city_manager --role manager --user alice --add downtown
 int main(int argc, char **argv){
@@ -591,6 +637,8 @@ int main(int argc, char **argv){
     }else if(!strcmp(option, "--filter")){
         int condition_count = argc - 7;
         filter_function(district_id, condition_count, &argv[7]);
+    }else if(!strcmp(option, "--remove_district")){
+        remove_district_function(district_id, user_name, user_role);
     }else{
         printf("Format: <%s> --role <user_role> --user <user_name> --<function_name> <district_id> <details>\n", argv[0]);
         exit(1);
