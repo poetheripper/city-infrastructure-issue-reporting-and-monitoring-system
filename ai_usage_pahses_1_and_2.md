@@ -15,3 +15,7 @@ I adapted the struct pointer name in "match_condition()" to match my exact varia
 
 5. What I've learned
 I learned how "sscanf()" can be better used with regular expression. I also learned how to dynamically map string operators (like ">=") to actual C code operators inside a functon.
+
+# AI Usage - Project Phase 2
+
+I've used AI based tools for the city_manager - monitor_reports connection logic and from a theoretical point of view, I've used it to better understand the signal manipulating functions and how to properly used them in a well structured code 

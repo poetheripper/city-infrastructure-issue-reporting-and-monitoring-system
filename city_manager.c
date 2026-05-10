@@ -1,3 +1,5 @@
+#define _POSIX_C_SOURCE 200809L
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <time.h>
@@ -8,6 +10,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <dirent.h>
+#include <signal.h>
 
 typedef struct{
 
@@ -169,12 +172,42 @@ void add_function(char *user_role, char *user_name, char *district_id){
 
         if(permission){
 
+            // 0 - failure, 1 - success
+            int valid_notif = 0;
+
+            int fd_monitor = open(".monitor_pid", O_RDONLY);
+
+            if(fd_monitor != -1){
+
+                char pid_name[50];
+
+                ssize_t bytes_read = read(fd_monitor, pid_name, sizeof(pid_name) - 1);
+                close(fd_monitor);
+
+                if(bytes_read > 0){
+                    pid_t new_pid = (pid_t)atoi(pid_name);
+
+                    if(new_pid > 0){
+                        if(kill(new_pid, SIGUSR1) == 0){
+                            valid_notif = 1;
+                        }
+                    }
+                }
+            }
+
             int fd_logged = open(logged_path, O_WRONLY | O_APPEND);
             if(fd_logged != -1){
                 
                 char logged_entry[200];
+                char notification[100];
 
-                snprintf(logged_entry, sizeof(logged_entry), "%ld %s %s action performed: add\n", new_file.timestamp, user_role, user_name);
+                if(valid_notif){
+                    strcpy(notification, "The monitor was notifified.");
+                }else{
+                    strcpy(notification, "WARNING: There was an error during the process.");
+                }
+
+                snprintf(logged_entry, sizeof(logged_entry), "%ld %s %s action performed: add [%s]\n", new_file.timestamp, user_role, user_name, notification);
 
                 write(fd_logged, logged_entry, strlen(logged_entry));
                 close(fd_logged);

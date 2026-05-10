@@ -42,5 +42,40 @@ int main(){
     s_usr1.sa_flags = 0;
 
 
+    if(sigaction(SIGUSR1, &s_usr1, NULL) == -1){
+        perror("Error while sigaction()\n");
+        exit(1);
+    }
+
+    s_int.sa_handler = handle_sigint;
+    sigemptyset(&s_int.sa_mask);
+    s_int.sa_flags = 0;
+
+    if(sigaction(SIGINT, &s_int, NULL) == -1){
+        perror("Error while sigaction()\n");
+        exit(1);
+    }
+
+    int fd = open(".monitor_pid", O_WRONLY | O_CREAT | O_TRUNC, 0644);
+    if(fd == -1){
+        perror("Error while open()\n");
+        exit(1);
+    }
+
+    pid_t current_pid = getpid();
+    char pid_name[50];
+    snprintf(pid_name, sizeof(pid_name), "%d\n", current_pid);
+
+    //writing the pid in the .monitor_pid
+    write(fd, pid_name, strlen(pid_name));
+    close(fd);
+
+    printf("[Monitor] PID: %d saved in '.monitor_pid'\n", current_pid);
+    fflush(stdout);
+
+    while(1){
+        sleep(10);
+    }
+
     return 0;
 }
