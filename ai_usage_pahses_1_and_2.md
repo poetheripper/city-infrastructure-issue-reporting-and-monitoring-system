@@ -18,4 +18,4 @@ I learned how "sscanf()" can be better used with regular expression. I also lear
 
 # AI Usage - Project Phase 2
 
-I've used AI based tools for the city_manager - monitor_reports connection logic and from a theoretical point of view, I've used it to better understand the signal manipulating functions and how to properly used them in a well structured code 
+I've used AI based tools for the city_manager - monitor_reports conection logic and from a theoretical point of view, I've used it to better understand the signal manipulating functions and how to properly used them in a well structured code.
